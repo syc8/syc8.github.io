@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>二维码海报工具 - 专业版</title>
+		<style>
+			:root { --primary-color: #2f86a6; --bg-gray: #f0f2f5; }
+			body { margin: 0; font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif; background: var(--bg-gray); height: 100vh; color: #333; }
+			
+			/* 容器：手机端垂直排列 */
+			.container { display: flex; height: 100%; }
+			@media (max-width: 768px) {
+				body { overflow: auto; height: auto; }
+				.container { flex-direction: column; height: auto; }
+			}
+
+			/* 左侧配置栏：手机端宽度自适应 */
+			.left { width: 340px; background: #fff; padding: 24px; box-sizing: border-box; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.02); }
+			@media (max-width: 768px) {
+				.left { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+			}
+
+			h3 { margin: 0 0 20px 0; font-size: 18px; border-left: 4px solid var(--primary-color); padding-left: 12px; }
+			
+			.form-item { margin-bottom: 20px; }
+			.form-item label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #666; }
+			.form-item input[type="text"], .form-item input[type="color"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #dcdfe6; border-radius: 6px; transition: border-color 0.2s; }
+			.form-item input:focus { outline: none; border-color: var(--primary-color); }
+			.form-item input[type="color"] { height: 40px; padding: 2px; cursor: pointer; }
+
+			.upload-box { border: 2px dashed #ebeef5; padding: 16px; text-align: center; background: #fafafa; border-radius: 8px; transition: background 0.2s; }
+			.upload-box:hover { background: #f5f7fa; }
+			#fileInfo { font-size: 12px; color: #909399; margin-bottom: 8px; }
+			#previewImg { max-width: 100%; max-height: 80px; object-fit: contain; margin: 8px auto; border-radius: 4px; display: block; }
+			
+			button { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+			button:active { transform: translateY(1px); }
+			#generateBtn { width: 100%; margin-top: 10px; font-size: 16px; }
+			
+			/* 右侧预览区 */
+			.right { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; position: relative; min-height: 400px; }
+			@media (max-width: 768px) {
+				.right { padding: 20px; }
+			}
+
+			.empty-state { text-align: center; background: rgba(255,255,255,0.6); padding: 40px 60px; border-radius: 20px; border: 1px solid #fff; backdrop-filter: blur(10px); color: #909399; }
+			.empty-state .icon { font-size: 48px; margin-bottom: 16px; display: block; filter: grayscale(1); opacity: 0.5; }
+
+			#canvasWrap { 
+				max-width: 100%; 
+				max-height: calc(100vh - 120px); 
+				box-shadow: 0 20px 50px rgba(0,0,0,0.12); 
+				border-radius: 12px; 
+				overflow: hidden; 
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#canvasWrap canvas { 
+				max-width: 100%; 
+				max-height: 100%; 
+				width: auto;
+				height: auto;
+				object-fit: contain;
+			}
+			
+			#downloadBtn { background: #2ecc71; margin-top: 25px; padding: 12px 50px; border-radius: 30px; box-shadow: 0 4px 15px rgba(46,204,113,0.3); }
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="left">
+				<h3>海报配置</h3>
+				<div class="form-item">
+					<label>二维码链接地址</label>
+					<input type="text" id="inputUrl" value="https://www.baidu.com(演示)" placeholder="请输入跳转链接">
+				</div>
+				<div class="form-item">
+					<label>海报标题</label>
+					<input type="text" id="inputTitle" value="危险化学品安全信息码(演示)">
+				</div>
+				<div class="form-item">
+					<label>底部编号/描述</label>
+					<input type="text" id="inputDesc" value="NO. 34128002423000001(演示)">
+				</div>
+				<div class="form-item">
+					<label>主题颜色</label>
+					<input type="color" id="inputColor" value="#2f86a6">
+				</div>
+				<div class="form-item">
+					<label>Logo 标识</label>
+					<div class="upload-box">
+						<div id="fileInfo">当前文件: test.png(演示)</div>
+						<input type="file" id="fileInput" accept="image/*" style="display: none;">
+						<img id="previewImg" src="./test.png" />
+						<button type="button" style="padding: 6px 16px; font-size: 12px; background: #909399;" onclick="document.getElementById('fileInput').click()">重新上传</button>
+					</div>
+				</div>
+				<button id="generateBtn">立即生成高清海报</button>
+			</div>
+
+			<div class="right">
+				<div id="canvasWrap">
+					<div class="empty-state">
+						<span class="icon">🖼️</span>
+						<p>配置左侧信息后点击生成</p>
+					</div>
+				</div>
+				<button id="downloadBtn" style="display:none;">保存到本地</button>
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+		<script>
+			class PosterRenderer {
+				constructor(width, height) {
+					this.canvas = document.createElement("canvas");
+					this.canvas.width = width;
+					this.canvas.height = height;
+					this.ctx = this.canvas.getContext("2d");
+				}
+
+				static loadImage(src) {
+					return new Promise((resolve) => {
+						if (!src) return resolve(null);
+						const img = new Image();
+						img.onload = () => {
+							const tempCanvas = document.createElement("canvas");
+							tempCanvas.width = img.width;
+							tempCanvas.height = img.height;
+							const tempCtx = tempCanvas.getContext("2d");
+							tempCtx.drawImage(img, 0, 0);
+							try {
+								const cleanBase64 = tempCanvas.toDataURL("image/png");
+								const cleanImg = new Image();
+								cleanImg.onload = () => resolve(cleanImg);
+								cleanImg.src = cleanBase64;
+							} catch (e) {
+								resolve(img);
+							}
+						};
+						img.onerror = () => resolve(null);
+						img.src = src;
+					});
+				}
+
+				drawRoundRect(x, y, w, h, r, fillStyle) {
+					const ctx = this.ctx;
+					ctx.beginPath();
+					ctx.fillStyle = fillStyle;
+					ctx.moveTo(x + r, y);
+					ctx.arcTo(x + w, y, x + w, y + h, r);
+					ctx.arcTo(x + w, y + h, x, y + h, r);
+					ctx.arcTo(x, y + h, x, y, r);
+					ctx.arcTo(x, y, x + w, y, r);
+					ctx.closePath();
+					ctx.fill();
+				}
+
+				drawText(text, x, y, font, color, align = "center") {
+					const ctx = this.ctx;
+					ctx.fillStyle = color;
+					ctx.font = font;
+					ctx.textAlign = align;
+					ctx.textBaseline = "middle";
+					ctx.fillText(text, x, y);
+				}
+
+				drawClippedLogo(img, x, y, size, radius) {
+					const ctx = this.ctx;
+					this.drawRoundRect(x - 15, y - 15, size + 30, size + 30, 20, "#FFFFFF");
+					ctx.save();
+					ctx.beginPath();
+					ctx.moveTo(x + radius, y);
+					ctx.arcTo(x + size, y, x + size, y + size, radius);
+					ctx.arcTo(x + size, y + size, x, y + size, radius);
+					ctx.arcTo(x, y + size, x, y, radius);
+					ctx.arcTo(x, y, x + size, y, radius);
+					ctx.closePath();
+					ctx.clip();
+					ctx.drawImage(img, x, y, size, size);
+					ctx.restore();
+				}
+			}
+
+			let currentLogoSource = "./test.png"; 
+
+			document.getElementById("fileInput").onchange = (e) => {
+				const file = e.target.files[0];
+				if (!file) return;
+				document.getElementById("fileInfo").innerText = `当前文件: ${file.name}`;
+				const reader = new FileReader();
+				reader.onload = () => {
+					currentLogoSource = reader.result;
+					document.getElementById("previewImg").src = currentLogoSource;
+				};
+				reader.readAsDataURL(file);
+			};
+
+			document.getElementById("generateBtn").onclick = async () => {
+				const btn = document.getElementById("generateBtn");
+				const config = {
+					url: document.getElementById("inputUrl").value || "https://www.baidu.com",
+					title: document.getElementById("inputTitle").value,
+					desc: document.getElementById("inputDesc").value,
+					color: document.getElementById("inputColor").value
+				};
+
+				btn.disabled = true;
+				btn.innerText = "正在渲染高清海报...";
+				
+				const QR_SIZE = 800;
+				const PADDING = 60;
+				const HEADER_H = 150;
+				const FOOTER_H = 150;
+
+				const renderer = new PosterRenderer(QR_SIZE + PADDING * 2, QR_SIZE + HEADER_H + FOOTER_H + PADDING);
+				const { ctx, canvas } = renderer;
+
+				try {
+					ctx.fillStyle = config.color;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					renderer.drawRoundRect(20, 20, canvas.width - 40, canvas.height - 40, 30, "#FFFFFF");
+
+					renderer.drawRoundRect(20, 20, canvas.width - 40, HEADER_H, 30, config.color);
+					ctx.fillRect(20, 20 + HEADER_H - 30, canvas.width - 40, 30);
+					renderer.drawText(config.title, canvas.width / 2, 20 + HEADER_H / 2, "bold 48px sans-serif", "#FFFFFF");
+
+					// 修改点：使用配置的动态 URL
+					const qrUrl = await QRCode.toDataURL(config.url, { margin: 1, width: QR_SIZE, errorCorrectionLevel: 'H' });
+					const qrImg = await PosterRenderer.loadImage(qrUrl);
+					ctx.drawImage(qrImg, PADDING, HEADER_H + 40, QR_SIZE, QR_SIZE);
+
+					const logoImg = await PosterRenderer.loadImage(currentLogoSource);
+					if (logoImg) {
+						const lSize = QR_SIZE * 0.18;
+						renderer.drawClippedLogo(logoImg, PADDING + (QR_SIZE - lSize) / 2, (HEADER_H + 40) + (QR_SIZE - lSize) / 2, lSize, 15);
+					}
+
+					renderer.drawText(config.desc, canvas.width / 2, HEADER_H + QR_SIZE + 110, "bold 42px monospace", "#333333");
+
+					const wrap = document.getElementById("canvasWrap");
+					wrap.innerHTML = "";
+					wrap.appendChild(canvas);
+					window.currentCanvas = canvas;
+					document.getElementById("downloadBtn").style.display = "inline-block";
+				} catch (err) {
+					console.error(err);
+					alert("生成失败，请检查配置");
+				} finally {
+					btn.disabled = false;
+					btn.innerText = "重新生成海报";
+				}
+			};
+
+			document.getElementById("downloadBtn").onclick = () => {
+				try {
+					const link = document.createElement("a");
+					link.download = `二维码海报_${Date.now()}.png`;
+					link.href = window.currentCanvas.toDataURL("image/png");
+					link.click();
+				} catch (e) {
+					alert("下载失败：由于浏览器限制，请尝试长按图片保存或在服务器环境运行。");
+				}
+			};
+		</script>
+	</body>
+</html>
