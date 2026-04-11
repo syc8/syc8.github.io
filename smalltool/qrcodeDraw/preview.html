@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIANQIE - 还原设计稿</title>
+    <title>DIANQIE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -11,24 +11,25 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans SC', sans-serif; }
+        body { font-family: 'Noto Sans SC', sans-serif; overflow-x: hidden; }
         
-        /* 1. 导航吸顶及磨砂效果 */
         .glass-nav {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
         }
 
-        /* 背景轮播调整 */
         .swiper-slide img { width: 100%; height: 100vh; object-fit: cover; }
         .hero-overlay {
             background: linear-gradient(to right, rgba(255,255,255,0.9) 30%, rgba(255,255,255,0) 100%);
         }
 
-        /* 侧边浮动栏 */
         .side-bar { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 100; }
         .side-item { width: 50px; height: 50px; background: white; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; border: 1px solid #eee; cursor: pointer; border-radius: 4px; font-size: 12px; flex-direction: column; }
+        
+        /* 💡 关键修改：不要在这里设置 opacity: 0，防止白屏 */
+        .reveal-up { will-change: transform, opacity; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -60,7 +61,7 @@
         </div>
     </nav>
 
-    <header class="relative h-screen overflow-hidden">
+    <header class="relative h-screen overflow-hidden" id="relative-header">
         <div class="swiper myHeroSwiper h-full w-full">
             <div class="swiper-wrapper">
                 <div class="swiper-slide"><img src="veer-377011231.jpg"></div>
@@ -94,11 +95,11 @@
     </header>
 
     <section class="py-20 px-20 bg-white">
-        <div class="text-center mb-16">
+        <div class="text-center mb-16 reveal-up">
             <h2 class="text-3xl font-bold text-gray-800 mb-2">快速访问</h2>
             <p class="text-gray-500 text-sm">找到最符合您需求的设备、服务或项目部分的最快路径。</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-l border-t">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-l border-t" id="access-grid">
             <script>
                 const items = [
                     ['变压器', '电力和配电变压器解决方案'],
@@ -112,7 +113,7 @@
                 ];
                 items.forEach(item => {
                     document.write(`
-                        <div class="p-8 border-r border-b hover:bg-blue-50 transition-colors cursor-pointer reveal-up group">
+                        <div class="p-8 border-r border-b hover:bg-blue-50 transition-colors cursor-pointer reveal-item group">
                             <div class="w-12 h-12 mb-4 bg-gray-100 group-hover:bg-blue-200 rounded-sm"></div>
                             <h4 class="font-bold text-gray-800 mb-2">${item[0]}</h4>
                             <p class="text-xs text-gray-500 leading-relaxed">${item[1]}</p>
@@ -124,7 +125,7 @@
     </section>
 
     <section class="py-20 px-20 bg-[#f0f2f5]">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 reveal-up">
             <h2 class="text-2xl font-bold mb-2">核心设备范围</h2>
             <p class="text-gray-500 text-sm">涵盖配电、储能集成和定制配置项目供应的结构化产品组合。</p>
         </div>
@@ -133,8 +134,10 @@
                 ['变压器','开关设备','储能','变电站'].forEach(name => {
                     document.write(`
                         <div class="reveal-up">
-                            <div class="bg-white rounded-sm overflow-hidden shadow-sm">
-                                <img src="veer-377011231.jpg" class="w-full h-48 object-cover">
+                            <div class="bg-white rounded-sm overflow-hidden shadow-sm group cursor-pointer">
+                                <div class="overflow-hidden">
+                                    <img src="veer-377011231.jpg" class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
+                                </div>
                                 <div class="p-4 text-center border-t">
                                     <p class="text-sm font-medium mb-2">${name}</p>
                                     <span class="text-xs text-gray-400">→</span>
@@ -148,7 +151,7 @@
     </section>
 
     <section class="py-20 px-20 bg-white">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 reveal-up">
             <h2 class="text-2xl font-bold mb-2">我们服务的行业</h2>
             <p class="text-gray-500 text-sm">与实际运行环境相适应的配电和储能解决方案。</p>
         </div>
@@ -177,25 +180,69 @@
     </section>
 
     <script>
-        // 初始化轮播
+        // 1. 初始化轮播
         new Swiper(".myHeroSwiper", {
             loop: true,
-            autoplay: { delay: 5000 },
+            autoplay: { delay: 3000 },
             effect: 'fade',
         });
 
-        // GSAP 动画
+        // 2. GSAP 注册插件
         gsap.registerPlugin(ScrollTrigger);
 
-        gsap.from(".reveal-content", { opacity: 0, x: -50, duration: 1, ease: "power3.out" });
+        window.addEventListener('DOMContentLoaded', () => {
+            
+            // 首屏文字入场（仅加载时一次）
+            // gsap.from(".reveal-content", { 
+            //     opacity: 0, 
+            //     x: -260, 
+            //     duration: 1, 
+            //     ease: "power3.out" 
+            // });
+            // 首屏文字入场（反复加载）
+            gsap.from(".reveal-content", {
+                scrollTrigger: {
+                    trigger: "#relative-header",
 
-        gsap.utils.toArray(".reveal-up").forEach(el => {
-            gsap.from(el, {
-                scrollTrigger: { trigger: el, start: "top 90%" },
-                y: 30,
+                    // // play(进入时播放) reverse(离开时反向播放) restart(再次进入重播) reset(离开时重置)
+                    toggleActions: "play reverse restart reset" 
+                },
+                opacity: 0, 
+                x: -360, 
+                duration: 1.5, 
+                ease: "power3.out" 
+                });
+
+
+            // 💡 优化后的“快速访问”列表动画
+            gsap.from(".reveal-item", {
+                scrollTrigger: {
+                    trigger: "#access-grid",
+                    start: "top 95%",
+                    // toggleActions 控制重复触发：
+                    // play(进入时播放) reverse(离开时反向播放) restart(再次进入重播) reset(离开时重置)
+                    toggleActions: "play reverse restart reset" 
+                },
+                y: 50,
                 opacity: 0,
-                duration: 0.8,
+                stagger: 0.1,
+                duration: 0.6,
                 ease: "power2.out"
+            });
+
+            // 💡 优化后的通用区块动画
+            gsap.utils.toArray(".reveal-up").forEach(el => {
+                gsap.from(el, {
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 95%",
+                        toggleActions: "play reverse restart reset"
+                    },
+                    y: 30,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: "power2.out"
+                });
             });
         });
     </script>
